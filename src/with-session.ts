@@ -62,6 +62,16 @@ export type GetServerSidePropsWithSession<
   session: Session,
 ) => Promise<GetServerSidePropsResult<P>>
 
+export type GetServerSidePropsWithSessionUser<
+  UserModel,
+  P extends { [key: string]: any } = { [key: string]: any },
+  Q extends ParsedUrlQuery = ParsedUrlQuery
+> = (
+  context: GetServerSidePropsContext<Q>,
+  session: Session,
+  user: UserModel
+) => Promise<GetServerSidePropsResult<P>>
+
 export function withSessionSSR(handler: GetServerSidePropsWithSession): GetServerSideProps {
   return withIronSession((ctx => {
     return handler(ctx, ctx.req.session);
@@ -96,7 +106,7 @@ export const guestRouteSSR = <UserSessionModel>(
 };
 
 export const privateRouteSSR = <UserSessionModel>(
-  handler: GetServerSidePropsWithSession,
+  handler: GetServerSidePropsWithSessionUser<UserSessionModel>,
   redirectTo?: string,
 ): GetServerSideProps => {
   return withSessionSSR(async (ctx, ses) => {
@@ -111,6 +121,6 @@ export const privateRouteSSR = <UserSessionModel>(
       };
     }
 
-    return handler(ctx, ses);
+    return handler(ctx, ses, user);
   });
 };
