@@ -3,6 +3,8 @@
   "version": "0.0.5",
   "description": "",
   "main": "dist/next-session-helpers.js",
+  "module": "dist/next-session-helpers.js",
+  "types": "dist/index.d.ts",
   "scripts": {
     "build": "NODE_OPTIONS=--max_old_space_size=6144 microbundle build --no-compress --format cjs --output dist src/index.ts",
     "test": "echo \"Skip tests\""
