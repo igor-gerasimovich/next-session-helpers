@@ -9,6 +9,8 @@ import {
 import { NextApiResponse } from 'next/dist/next-server/lib/utils';
 import { ParsedUrlQuery } from 'querystring';
 
+type PropsBase = { [key: string]: any };
+
 // Start shitty globals
 const config = {
   NODE_ENV: '',
@@ -72,7 +74,10 @@ export type GetServerSidePropsWithSessionUser<
   user: UserModel
 ) => Promise<GetServerSidePropsResult<P>>
 
-export function withSessionSSR(handler: GetServerSidePropsWithSession): GetServerSideProps {
+export function withSessionSSR<
+  Props extends PropsBase = PropsBase,
+  Query extends ParsedUrlQuery = ParsedUrlQuery
+>(handler: GetServerSidePropsWithSession<Props, Query>): GetServerSideProps<Props, Query> {
   return withIronSession((ctx => {
     return handler(ctx, ctx.req.session);
   }), {
@@ -85,12 +90,15 @@ export function withSessionSSR(handler: GetServerSidePropsWithSession): GetServe
   });
 }
 
-export const guestRouteSSR = <UserSessionModel>(
-  handler: GetServerSidePropsWithSession,
+export const guestRouteSSR = <
+  Props extends PropsBase = PropsBase,
+  Query extends ParsedUrlQuery = ParsedUrlQuery
+>(
+  handler: GetServerSidePropsWithSession<Props, Query>,
   redirectTo?: string,
-): GetServerSideProps => {
-  return withSessionSSR(async (ctx, ses) => {
-    const user = ses.get<UserSessionModel>(config.SESSION_USER_PARAM);
+): GetServerSideProps<Props, Query> => {
+  return withSessionSSR<Props, Query>(async (ctx, ses) => {
+    const user = ses.get<unknown>(config.SESSION_USER_PARAM);
 
     if (user) {
       return {
@@ -105,11 +113,15 @@ export const guestRouteSSR = <UserSessionModel>(
   });
 };
 
-export const privateRouteSSR = <UserSessionModel>(
-  handler: GetServerSidePropsWithSessionUser<UserSessionModel>,
+export const privateRouteSSR = <
+  UserSessionModel,
+  Props extends PropsBase = PropsBase,
+  Query extends ParsedUrlQuery = ParsedUrlQuery
+>(
+  handler: GetServerSidePropsWithSessionUser<UserSessionModel, Props, Query>,
   redirectTo?: string,
-): GetServerSideProps => {
-  return withSessionSSR(async (ctx, ses) => {
+): GetServerSideProps<Props, Query> => {
+  return withSessionSSR<Props, Query>(async (ctx, ses) => {
     const user = ses.get<UserSessionModel>(config.SESSION_USER_PARAM);
 
     if (!user) {
