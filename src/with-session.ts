@@ -23,6 +23,7 @@ const config = {
 
   // When user unauthorized and trying to visit only private url
   UNAUTHORIZED_REDIRECT_URL: '',
+  UNAUTHORIZED_REDIRECT_CALLBACK: undefined as (undefined | GetServerSidePropsWithSession<any, any>),
 
   // When user authorized and trying to visit only guest url
   AUTHORIZED_REDIRECT_URL: '',
@@ -33,7 +34,10 @@ export const setConfig = (newConfig: Partial<GlobalConfig>) => {
   const keys = Object.keys(newConfig) as Array<keyof GlobalConfig>;
   keys.forEach(k => {
     const v = newConfig[k];
-    if (v !== undefined) config[k] = v;
+    if (v !== undefined) {
+      // @ts-ignore
+      config[k] = v;
+    }
   })
 };
 // End shitty globals
@@ -119,12 +123,20 @@ export const privateRouteSSR = <
   Query extends ParsedUrlQuery = ParsedUrlQuery
 >(
   handler: GetServerSidePropsWithSessionUser<UserSessionModel, Props, Query>,
-  redirectTo?: string,
+  redirectTo?: string | GetServerSidePropsWithSession<Props, Query>,
 ): GetServerSideProps<Props, Query> => {
   return withSessionSSR<Props, Query>(async (ctx, ses) => {
     const user = ses.get<UserSessionModel>(config.SESSION_USER_PARAM);
 
     if (!user) {
+      if (typeof redirectTo === 'function') {
+        return redirectTo(ctx, ses);
+      }
+
+      if (config.UNAUTHORIZED_REDIRECT_CALLBACK !== undefined) {
+        return config.UNAUTHORIZED_REDIRECT_CALLBACK(ctx, ses)
+      }
+
       return {
         redirect: {
           destination: !!redirectTo ? redirectTo : config.UNAUTHORIZED_REDIRECT_URL,
