@@ -6,7 +6,7 @@ import {
   NextApiHandler,
   NextApiRequest
 } from 'next';
-import { NextApiResponse } from 'next/dist/next-server/lib/utils';
+import { NextApiResponse } from 'next';
 import { ParsedUrlQuery } from 'querystring';
 
 type PropsBase = { [key: string]: any };
@@ -43,9 +43,14 @@ export const setConfig = (newConfig: Partial<GlobalConfig>) => {
 // End shitty globals
 
 
+
 export type IronSessionRequest = NextApiRequest & {
   session: Session;
 };
+
+export type GetServerSidePropsContextWithSession<Q> = GetServerSidePropsContext<Q> & { session: Session } & {
+  req: IronSessionRequest
+}
 
 export type NextApiHandlerWithSession<T = any> = (req: IronSessionRequest, res: NextApiResponse<T>) => void | Promise<void>;
 
@@ -82,7 +87,7 @@ export function withSessionSSR<
   Props extends PropsBase = PropsBase,
   Query extends ParsedUrlQuery = ParsedUrlQuery
 >(handler: GetServerSidePropsWithSession<Props, Query>): GetServerSideProps<Props, Query> {
-  return withIronSession((ctx => {
+  return withIronSession(((ctx: GetServerSidePropsContextWithSession<Query>) => {
     return handler(ctx, ctx.req.session);
   }), {
     password: config.SESSION_AUTH_COOKIE_PASSWORD,
