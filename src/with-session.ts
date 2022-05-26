@@ -48,7 +48,7 @@ export type IronSessionRequest = NextApiRequest & {
   session: Session;
 };
 
-export type GetServerSidePropsContextWithSession<Q> = GetServerSidePropsContext<Q> & { session: Session } & {
+export type GetServerSidePropsContextWithSession<Q extends ParsedUrlQuery = ParsedUrlQuery> = GetServerSidePropsContext<Q> & { session: Session } & {
   req: IronSessionRequest
 }
 
