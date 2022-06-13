@@ -11,6 +11,8 @@ import { ParsedUrlQuery } from 'querystring';
 
 type PropsBase = { [key: string]: any };
 
+type AdditionalPermissionsCheckFunction = <T>(user: T) => boolean;
+
 // Start shitty globals
 const config = {
   NODE_ENV: '',
@@ -28,7 +30,7 @@ const config = {
   // When user authorized and trying to visit only guest url
   AUTHORIZED_REDIRECT_URL: '',
 
-  additionalPermissionCheck: undefined as (undefined | <T>(user: T) => boolean),
+  additionalPermissionCheck: undefined as (undefined | AdditionalPermissionsCheckFunction),
 };
 type GlobalConfig = typeof config;
 

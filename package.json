@@ -1,6 +1,6 @@
 {
   "name": "@igor-gerasimovich/next-session-helpers",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "",
   "main": "dist/next-session-helpers.js",
   "module": "dist/next-session-helpers.js",
