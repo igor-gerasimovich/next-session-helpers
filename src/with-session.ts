@@ -27,6 +27,8 @@ const config = {
 
   // When user authorized and trying to visit only guest url
   AUTHORIZED_REDIRECT_URL: '',
+
+  additionalPermissionCheck: undefined as (undefined | <T>(user: T) => boolean),
 };
 type GlobalConfig = typeof config;
 
@@ -129,11 +131,14 @@ export const privateRouteSSR = <
 >(
   handler: GetServerSidePropsWithSessionUser<UserSessionModel, Props, Query>,
   redirectTo?: string | GetServerSidePropsWithSession<Props, Query>,
+  additionalPermissionCheck?: GlobalConfig['additionalPermissionCheck'],
 ): GetServerSideProps<Props, Query> => {
   return withSessionSSR<Props, Query>(async (ctx, ses) => {
     const user = ses.get<UserSessionModel>(config.SESSION_USER_PARAM);
 
-    if (!user) {
+    const permCheck = config.additionalPermissionCheck || additionalPermissionCheck;
+
+    if (!user || permCheck && permCheck(user)) {
       if (typeof redirectTo === 'function') {
         return redirectTo(ctx, ses);
       }
